@@ -1,0 +1,210 @@
+open Tor
+search hiddenwiki Url since its url changes automatically
+proxies- Yor search qeuries are tunneled through various servers so the the main eg. facebook server gets request from some other server instead of ours this is slow
+
+type of proxies HTTP, SOCKS4,SOCKS5(best)
+nano/etc/proxychains.conf is teh config page for proxies
+just delet the # in the proxy type	
+most importantly Proxy dns is needed 3:29:50 video
+tor by default 9050 port
+
+to start end and find status of a services
+$ service tor status
+$ service tor start
+after starting tor service check connections its should always be done for anonymity during footprinting etc
+eg 
+$ proxychains firefox www.flipkart.com
+after using this check for dns leaks online
+for proxies use location of china or russia but netherlands is best privacy policies
+stick with 2 or 3 proxies or else it will take a lot of time to browse though all the proxies listed in proxychains.conf
+
+vpn connection
+if network not managed mode
+then do nano /etc/NetworkManager/NetworkManager.conf   and set managed=true  and then restart network manager
+service network-manager restart
+install vpn from apt-get at 4:00:40
+add vpns 
+or search vpns at vpnbook.com
+download from site and extract irt to windows then 
+go to that directory by cd command
+then type
+# openvpn --config {vpnbook-de23-tcp443.vpn}(this is the name of vpn) 
+after enter it will ask fror username and password which is given in the site
+this will configure the vpn now check for dns leaks
+goto $ nano /etc/resolv.conf
+npw it will show home router ip addr.
+now we have to comment it using #
+since the dns request are forwarded to this addr
+go to opendns and get a new dns addr and paste it to the resolv.conf
+add atleast 2 opendns so that if one fails other maintains ur connections
+
+don not restart ur network manager as it will take back the original nameserver
+mac addr the 1st 3 addr are used to identify mfg of the device if we kmnow the ,mfg of the device we know the vulnerability
+use macchanger to change ur mac
+use a script so that evrytime v boot it will changre to a random macaddr
+when we wnat stuffs to be automated in linux we use cronjob
+
+# crontab --help
+$ crontab -e
+ then edit 
+ @reboot macchanger -r eth0
+ 
+ ---foot printing
+ nmap
+ or zenmap(graphical nmap)44
+go to nmap site to test their site using nmap nmap.org
+nmap raise a lot of alarm in sense it is flagged by the firewall so to make the nmap as silent as possible
+
+mostly is nmap -v used  verbose output
+-o is used for os detecction 
+-iL<input file list>
+major ip blocks search on google n go to nirsoft it has range of all ip address
+once after getting an ip address search engine is the best help 
+using whois
+innmap -v is used because once we start nmapping we wont get op screen is blank so tpo get step by step detail we use -v
+now after scanning the port we see some port open closed filtered
+   open means servoce is running we can do an attack closed means cant do anythin
+   filtered means there is some firewall activites going thru that port not much info hav to learn
+
+   to find the local subnet ip address go to ifconfig check the inet address and at the last ocket change the range from 0 to 255
+   now scanning a range of ip an having a grepable output into  file
+
+
+
+
+nmap -oG -192.168.0.0-255(inet range) -p 22 (we are giving teh port num cos it will take huge time to check all the 1000 port)-vv > /home/result.txt
+now after getting op in file and using grep we get many required data an from that data to extract ip addr we use awk
+cat
+cat result.txt | grep Up awk -F " " '{print $2}' > result2
+ (video 10:41:52 )
+
+nmap -iL result2 -vv
+tool to assing an ip address to a real address
+curl ipinfo/io/74.207.244.221 (vid 10:38:02)
+in nmap site the provide scripts for different attack we can do using nmap  scanme.nmap.org
+
+--nslookup 
+can get ip addr using this
+dns port num is 53
+nslookup also works in reverse we can give ip address also
+
+--exploitdb on google give all vlnerability
+
+--wireless crack
+
+always better to find ip of router and attack it rather than wpa2 crack
+in exploitdb search for vulnrability in home router
+
+aircrak ng suite and reaver is used to crack wifi
+cracking wifi or router having pin authentication is very easy so disable it
+
+premiscus mode-network card only process data related to that computer
+but it is encrypted
+monitor mode-take all traffic and process it forfurther info mac in not encrypted but most info is encrypt
+ in frdora no reaver in repository 
+ instead download it on internet
+
+eg reaver
+
+reaver -i mon0(network interface) -b 00:44:....(mac id) -vv
+
+
+aircrack suite has airdump ng which is used to collect info
+
+a;lso download crunch which is a password listing tool :9:57:25
+
+
+crunch <min> <max> [strings] [optoon]
+
+eg yo use crunch and aircrack
+
+crunch 5 8 abcdef12345 | aircrack-ng -w -
+
+-w is for password list
+
+
+ 
+ set wifi to monitor mode
+steps 
+1 ifconfig wlan0 down
+2 iwconfig wlan0 mode monitor
+3 ifconfig wlan0 up
+
+now check for some process which troubles function of  networf
+always kill NetworkManager 1st 
+next kill dhclient 
+then kill the rest of them
+ airmon-ng check wlan0
+ kill 1122(the num next to it)
+
+ now do a scan of surrounding of all the networks around us
+
+ airodump-ng wlan0
+ gives list
+ pwr is teh strength of signal -15 is lot better than -30
+upper list is the router
+lower list is the ip or user connected to the bssid of router
+  deauth attack
+
+now copy bssid of targer roter and perform command
+airodump-ng -c 6 (channe num.) -w test_file(output filesname) --bssid (mac id or router) wlan0
+
+now we get another window of the person connected to it
+station is the bssid of the connected person
+
+
+aireplay is for deauth purpose
+
+aireplay-ng -0 9 -a (mac addr of router)  wlan0 
+(-0 is for  number of deauth transmission to send and 0  means infinity loop) all this should be run on new terminal
+
+so basically it deauth the connected device and after stopping the deauth the target again reconnect to wifi and when this happen we can capture the handshake
+
+after capturing stop the airodump
+
+
+no cracking using crunch an aircrack
+
+before cracking use man cruncg to use a wordfile with certain characters and certain combinations 
+crunch -t
+here @ insert lowercase
+, insert uppercase
+%insert number
+^ insert symbols
+
+
+eg crunch 8 8-t %%%%abcd(should be equal to the num specified)  1234 | aircrack-ng -w - test_file.cap(the once used to store handshake) -e (essid)
+
+the .cap file can be portable that is take it to other pc and divide the work
+
+
+pin auth enabled by default crack remote ut downside is that after certain attempts router locks and wont accept pins  
+
+
+
+after killing network manager we can start it using
+service NetworkManager restart
+
+
+wash -i wlan0 if this command shows error mke a dir
+mkdir /etc/reaver if olready there dont do it
+it tells us about vulnerability of pin auth i.e wps locked or not
+if wps locked is no
+then it is vulnerable else dont try
+reaver -b (macaddr of router) -i wlan0 -c (channel from airodump) -vv
+then it will ask restore from prev session if yes
+ then after certain tries if it get locked then after some more time it will continue from where it was left
+
+
+mdk3 maybe reset router if the wps is locked
+
+if the tries get you locked then deauth the users so that they can reset the router  and we can again try our reaver
+
+we can limit no. of tries for certain time
+
+reaver -b (macaddr of router) -i wlan0 -c (channel from airodump) -r 2:60 (that means 2 tries in 60 sec) -vv
+
+
+another way to rack password is that all companies make password using algo so rev engg that algo using net and we get it
+tp link has they password related to 1st part of mac addr
+  	8:24:39
